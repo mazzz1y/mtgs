@@ -46,8 +46,8 @@ type Config struct {
 		Prefix string
 	}
 
-	Secret []byte
-	AdTag  []byte
+	Secrets [][]byte
+	AdTag   []byte
 }
 
 // URLs contains links to the proxy (tg://, t.me) and their QR codes.
@@ -82,8 +82,12 @@ func (c *Config) UseMiddleProxy() bool {
 }
 
 // BotSecretString returns secret string which should work with MTProxybot.
-func (c *Config) BotSecretString() string {
-	return hex.EncodeToString(c.Secret)
+func (c *Config) BotSecretString() []string {
+	var secretsArray []string
+	for _, secret := range c.Secrets {
+		secretsArray = append(secretsArray, hex.EncodeToString(secret))
+	}
+	return secretsArray
 }
 
 // SecretString returns a secret in a form entered on the start of the
@@ -91,9 +95,11 @@ func (c *Config) BotSecretString() string {
 func (c *Config) SecretString() string {
 	secret := c.BotSecretString()
 	if c.SecureMode {
-		return "dd" + secret
+		return "dd" + secret[0]
 	}
-	return secret
+	// TODO
+	// hardcoded to first secret
+	return secret[0]
 }
 
 // GetURLs returns configured IPURLs instance with links to this server.
@@ -106,7 +112,9 @@ func (c *Config) GetURLs() IPURLs {
 	if c.PublicIPv6 != nil {
 		urls.IPv6 = getURLs(c.PublicIPv6, c.PublicIPv6Port, secret)
 	}
-	urls.BotSecret = c.BotSecretString()
+	// TODO
+	// hardcoded to first secret
+	urls.BotSecret = c.BotSecretString()[0]
 
 	return urls
 }
@@ -126,13 +134,17 @@ func NewConfig(debug, verbose bool, // nolint: gocyclo
 	statsdTags map[string]string, prometheusPrefix string,
 	secureOnly bool,
 	antiReplayMaxSize int, antiReplayEvictionTime time.Duration,
-	secret, adtag []byte) (*Config, error) {
+	secrets [][]byte,
+	adtag []byte) (*Config, error) {
 	secureMode := secureOnly
-	if bytes.HasPrefix(secret, []byte{0xdd}) && len(secret) == 17 {
-		secureMode = true
-		secret = bytes.TrimPrefix(secret, []byte{0xdd})
-	} else if len(secret) != 16 {
-		return nil, errors.New("Telegram demands secret of length 32")
+
+	for _, secret := range secrets {
+		if bytes.HasPrefix(secret, []byte{0xdd}) && len(secret) == 17 {
+			secureMode = true
+			secret = bytes.TrimPrefix(secret, []byte{0xdd})
+		} else if len(secret) != 16 {
+			return nil, errors.New("Telegram demands secret of length 32")
+		}
 	}
 
 	var err error
@@ -176,7 +188,7 @@ func NewConfig(debug, verbose bool, // nolint: gocyclo
 		PublicIPv6Port:         publicIPv6Port,
 		StatsIP:                statsIP,
 		StatsPort:              statsPort,
-		Secret:                 secret,
+		Secrets:                secrets,
 		AdTag:                  adtag,
 		SecureMode:             secureMode,
 		ReadBufferSize:         int(readBufferSize),
