@@ -18,7 +18,6 @@ import (
 	"mtg/ntp"
 	"mtg/proxy" 
 	"encoding/hex" 
-	"mtg/stats"
 )
 
 var version = "dev" // this has to be set by build ld flags
@@ -215,10 +214,6 @@ func main() { // nolint: gocyclo
 		}
 	} else {
 		zap.S().Infow("Use direct connection to Telegram")
-	}
-
-	if err := stats.Init(conf); err != nil {
-		panic(err)
 	}
 
 	server, err := proxy.NewProxy(conf)

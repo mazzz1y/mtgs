@@ -7,7 +7,6 @@ import (
 
 	"go.uber.org/zap"
 
-	"mtg/stats"
 	"github.com/juju/errors"
 )
 
@@ -64,7 +63,6 @@ func (c *Conn) Write(p []byte) (int, error) {
 
 		n, err := c.conn.Write(p)
 		c.logger.Debugw("Write to stream", "bytes", n, "error", err)
-		stats.EgressTraffic(n)
 		if err != nil {
 			c.Close() // nolint: gosec
 		}
@@ -86,7 +84,6 @@ func (c *Conn) Read(p []byte) (int, error) {
 
 		n, err := c.conn.Read(p)
 		c.logger.Debugw("Read from stream", "bytes", n, "error", err)
-		stats.IngressTraffic(n)
 		if err != nil {
 			c.Close() // nolint: gosec
 		}

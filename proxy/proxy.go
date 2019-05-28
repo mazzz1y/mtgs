@@ -14,7 +14,6 @@ import (
 	"mtg/client"
 	"mtg/config"
 	"mtg/mtproto"
-	"mtg/stats"
 	"mtg/telegram"
 	"mtg/wrappers"
 )
@@ -53,7 +52,6 @@ func (p *Proxy) accept(conn net.Conn) {
 		conn.Close() // nolint: errcheck, gosec
 
 		if err := recover(); err != nil {
-			stats.NewCrash()
 			log.Errorw("Crash of accept handler", "error", err)
 		}
 	}()
@@ -71,9 +69,6 @@ func (p *Proxy) accept(conn net.Conn) {
 		log.Errorw("Proxy supports only secure connections", "connection_type", opts.ConnectionType)
 		return
 	}
-
-	stats.ClientConnected(opts.ConnectionType, clientConn.RemoteAddr())
-	defer stats.ClientDisconnected(opts.ConnectionType, clientConn.RemoteAddr())
 
 	serverConn, err := p.getTelegramConn(ctx, cancel, opts, connID)
 	if err != nil {
