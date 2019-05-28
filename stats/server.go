@@ -6,7 +6,7 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/9seconds/mtg/config"
+	"mtg/config"
 )
 
 func startServer(conf *config.Config, prometheusHandler http.Handler) {

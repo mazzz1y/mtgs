@@ -3,7 +3,7 @@
 Bullshit-free MTPROTO proxy for Telegram
 
 [![Build Status](https://travis-ci.org/9seconds/mtg.svg?branch=master)](https://travis-ci.org/9seconds/mtg)
-[![Go Report Card](https://goreportcard.com/badge/github.com/9seconds/mtg)](https://goreportcard.com/report/github.com/9seconds/mtg)
+[![Go Report Card](https://goreportcard.com/badge/mtg)](https://goreportcard.com/report/mtg)
 [![Docker Build Status](https://img.shields.io/docker/build/nineseconds/mtg.svg)](https://hub.docker.com/r/nineseconds/mtg/)
 
 # Rationale
@@ -264,7 +264,7 @@ You will have this tool up and running on port 3128. Now curl
 `localhost:3129` to get `tg://` links or do `docker logs mtg`. Also,
 port 3129 will show you some statistics if you are interested in.
 
-Also, you can use [run-mtg.sh](https://github.com/9seconds/mtg/blob/master/run-mtg.sh) script
+Also, you can use [run-mtg.sh](https://mtg/blob/master/run-mtg.sh) script
 
 
 # statsd integration

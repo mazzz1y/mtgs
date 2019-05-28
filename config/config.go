@@ -1,7 +1,6 @@
 package config
 
 import (
-	"bytes"
 	"encoding/hex"
 	"fmt"
 	"net"
@@ -46,7 +45,7 @@ type Config struct {
 		Prefix string
 	}
 
-	Secrets [][]byte
+	Secrets *map[string][]byte
 	AdTag   []byte
 }
 
@@ -84,7 +83,7 @@ func (c *Config) UseMiddleProxy() bool {
 // BotSecretString returns secret string which should work with MTProxybot.
 func (c *Config) BotSecretString() []string {
 	var secretsArray []string
-	for _, secret := range c.Secrets {
+	for _, secret := range *c.Secrets {
 		secretsArray = append(secretsArray, hex.EncodeToString(secret))
 	}
 	return secretsArray
@@ -134,18 +133,9 @@ func NewConfig(debug, verbose bool, // nolint: gocyclo
 	statsdTags map[string]string, prometheusPrefix string,
 	secureOnly bool,
 	antiReplayMaxSize int, antiReplayEvictionTime time.Duration,
-	secrets [][]byte,
+	secrets *map[string][]byte,
 	adtag []byte) (*Config, error) {
 	secureMode := secureOnly
-
-	for _, secret := range secrets {
-		if bytes.HasPrefix(secret, []byte{0xdd}) && len(secret) == 17 {
-			secureMode = true
-			secret = bytes.TrimPrefix(secret, []byte{0xdd})
-		} else if len(secret) != 16 {
-			return nil, errors.New("Telegram demands secret of length 32")
-		}
-	}
 
 	var err error
 	if publicIPv4 == nil {

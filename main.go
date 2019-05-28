@@ -14,13 +14,16 @@ import (
 	"go.uber.org/zap/zapcore"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 
-	"github.com/9seconds/mtg/config"
-	"github.com/9seconds/mtg/ntp"
-	"github.com/9seconds/mtg/proxy"
-	"github.com/9seconds/mtg/stats"
+	"mtg/config"
+	"mtg/ntp"
+	"mtg/proxy" 
+	"encoding/hex" 
+	"mtg/stats"
 )
 
 var version = "dev" // this has to be set by build ld flags
+
+var Secrets = make(map[string][]byte) 
 
 var (
 	app = kingpin.New("mtg", "Simple MTPROTO proxy.")
@@ -144,9 +147,7 @@ var (
 		Envar("MTG_ANTIREPLAY_EVICTIONTIME").
 		Default("168h").
 		Duration()
-
-	secret = app.Arg("secret", "Secret of this proxy.").Required().HexBytes()
-	adtag  = app.Arg("adtag", "ADTag of the proxy.").HexBytes()
+	adtag = app.Arg("adtag", "ADTag of the proxy.").HexBytes()
 )
 
 func main() { // nolint: gocyclo
@@ -155,6 +156,13 @@ func main() { // nolint: gocyclo
 	app.HelpFlag.Short('h')
 
 	kingpin.MustParse(app.Parse(os.Args[1:]))
+
+
+	h, _ := hex.DecodeString("2606bcde778d3782ead886d8f3f052c3")
+	// h1, _ := hex.DecodeString("afe2ca14bd9c903dd8bb6e7ef2b52f29")
+
+	var secrets = make(map[string][]byte) 
+	secrets["test"] = h
 
 	err := setRLimit()
 	if err != nil {
@@ -168,7 +176,7 @@ func main() { // nolint: gocyclo
 		*statsdIP, *statsdNetwork, *statsdPrefix, *statsdTagsFormat,
 		*statsdTags, *prometheusPrefix, *secureOnly,
 		*antiReplayMaxSize, *antiReplayEvictionTime,
-		*secret, *adtag,
+		&secrets, *adtag,
 	)
 	if err != nil {
 		usage(err.Error())
@@ -192,7 +200,6 @@ func main() { // nolint: gocyclo
 	zap.ReplaceGlobals(logger)
 	defer logger.Sync() // nolint: errcheck
 
-	printURLs(conf.GetURLs())
 	zap.S().Debugw("Configuration", "config", conf)
 
 	if conf.UseMiddleProxy() {
@@ -218,6 +225,10 @@ func main() { // nolint: gocyclo
 	if err != nil {
 		panic(err)
 	}
+
+	gin := InitGin()
+	go gin.Run(":8080")
+	
 	if err := server.Serve(); err != nil {
 		zap.S().Fatalw("Server stopped", "error", err)
 	}

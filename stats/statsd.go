@@ -6,7 +6,7 @@ import (
 	"github.com/juju/errors"
 	statsd "gopkg.in/alexcesaro/statsd.v2"
 
-	"github.com/9seconds/mtg/config"
+	"mtg/config"
 )
 
 const (

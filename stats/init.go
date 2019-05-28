@@ -3,7 +3,7 @@ package stats
 import (
 	"github.com/juju/errors"
 
-	"github.com/9seconds/mtg/config"
+	"mtg/config"
 )
 
 // Init initializes stats subsystem.

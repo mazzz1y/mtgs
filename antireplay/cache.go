@@ -4,7 +4,7 @@ import (
 	"github.com/allegro/bigcache"
 	"github.com/juju/errors"
 
-	"github.com/9seconds/mtg/config"
+	"mtg/config"
 )
 
 // Cache defines storage for obfuscated2 handshake frames.

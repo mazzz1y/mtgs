@@ -7,11 +7,11 @@ import (
 
 	"github.com/juju/errors"
 
-	"github.com/9seconds/mtg/antireplay"
-	"github.com/9seconds/mtg/config"
-	"github.com/9seconds/mtg/mtproto"
-	"github.com/9seconds/mtg/obfuscated2"
-	"github.com/9seconds/mtg/wrappers"
+	"mtg/antireplay"
+	"mtg/config"
+	"mtg/mtproto"
+	"mtg/obfuscated2"
+	"mtg/wrappers"
 )
 
 const handshakeTimeout = 10 * time.Second
@@ -40,7 +40,7 @@ func DirectInit(ctx context.Context, cancel context.CancelFunc, socket net.Conn,
 	socket.SetReadDeadline(time.Time{}) // nolint: errcheck, gosec
 
 	conn := wrappers.NewConn(ctx, cancel, socket, connID, wrappers.ConnPurposeClient, conf.PublicIPv4, conf.PublicIPv6)
-	obfs2, connOpts, err := obfuscated2.ParseObfuscated2ClientFrame(conf.Secret, frame)
+	obfs2, connOpts, err := obfuscated2.ParseObfuscated2ClientFrame(conf.Secrets, frame)
 	if err != nil {
 		return nil, nil, errors.Annotate(err, "Cannot parse obfuscated frame")
 	}

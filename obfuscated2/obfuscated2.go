@@ -7,7 +7,8 @@ import (
 
 	"github.com/juju/errors"
 
-	"github.com/9seconds/mtg/mtproto"
+	"mtg/mtproto"
+	"fmt"
 )
 
 // Obfuscated2 contains AES CTR encryption and decryption streams
@@ -21,35 +22,38 @@ type Obfuscated2 struct {
 // details: http://telegra.ph/telegram-blocks-wtf-05-26
 //
 // Beware, link above is in russian.
-func ParseObfuscated2ClientFrame(secret []byte, frame Frame) (*Obfuscated2, *mtproto.ConnectionOpts, error) {
-	decHasher := sha256.New()
-	decHasher.Write(frame.Key()) // nolint: errcheck, gosec
-	decHasher.Write(secret)      // nolint: errcheck, gosec
-	decryptor := makeStreamCipher(decHasher.Sum(nil), frame.IV())
+func ParseObfuscated2ClientFrame(secrets *map[string][]byte, frame Frame) (*Obfuscated2, *mtproto.ConnectionOpts, error) {
+	var err error
+	for _, secret := range *secrets {
+		fmt.Println(secret)
+		decHasher := sha256.New()
+		decHasher.Write(frame.Key()) // nolint: errcheck, gosec
+		decHasher.Write(secret)      // nolint: errcheck, gosec
+		decryptor := makeStreamCipher(decHasher.Sum(nil), frame.IV())
 
-	invertedFrame := frame.Invert()
-	encHasher := sha256.New()
-	encHasher.Write(invertedFrame.Key()) // nolint: errcheck, gosec
-	encHasher.Write(secret)              // nolint: errcheck, gosec
-	encryptor := makeStreamCipher(encHasher.Sum(nil), invertedFrame.IV())
+		invertedFrame := frame.Invert()
+		encHasher := sha256.New()
+		encHasher.Write(invertedFrame.Key()) // nolint: errcheck, gosec
+		encHasher.Write(secret)              // nolint: errcheck, gosec
+		encryptor := makeStreamCipher(encHasher.Sum(nil), invertedFrame.IV())
 
-	decryptedFrame := make(Frame, FrameLen)
-	decryptor.XORKeyStream(decryptedFrame, frame)
-	connType, err := decryptedFrame.ConnectionType()
-	if err != nil {
-		return nil, nil, errors.Annotate(err, "Unknown protocol")
+		decryptedFrame := make(Frame, FrameLen)
+		decryptor.XORKeyStream(decryptedFrame, frame)
+		connType, err := decryptedFrame.ConnectionType()
+		if err != nil {
+			continue
+		}
+		obfs := &Obfuscated2{
+			Decryptor: decryptor,
+			Encryptor: encryptor,
+		}
+		connOpts := &mtproto.ConnectionOpts{
+			DC:             decryptedFrame.DC(),
+			ConnectionType: connType,
+		}
+		return obfs, connOpts, nil
 	}
-
-	obfs := &Obfuscated2{
-		Decryptor: decryptor,
-		Encryptor: encryptor,
-	}
-	connOpts := &mtproto.ConnectionOpts{
-		DC:             decryptedFrame.DC(),
-		ConnectionType: connType,
-	}
-
-	return obfs, connOpts, nil
+	return nil, nil, errors.Annotate(err, "Unknown protocol")
 }
 
 // MakeTelegramObfuscated2Frame creates new handshake frame to send to

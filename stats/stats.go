@@ -8,8 +8,8 @@ import (
 
 	humanize "github.com/dustin/go-humanize"
 
-	"github.com/9seconds/mtg/config"
-	"github.com/9seconds/mtg/mtproto"
+	"mtg/config"
+	"mtg/mtproto"
 )
 
 type uptime time.Time

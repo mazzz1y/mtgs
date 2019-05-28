@@ -12,10 +12,10 @@ RUN set -x \
     make \
     upx
 
-COPY . /go/src/github.com/9seconds/mtg/
+COPY . /go/src/mtg/
 
 RUN set -x \
-  && cd /go/src/github.com/9seconds/mtg \
+  && cd /go/src/mtg \
   && make -j 4 static \
   && upx --ultra-brute -qq ./mtg
 
@@ -33,4 +33,4 @@ ENV MTG_IP=0.0.0.0 \
 EXPOSE 3128 3129
 
 COPY --from=0 /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
-COPY --from=0 /go/src/github.com/9seconds/mtg/mtg /mtg
+COPY --from=0 /go/src/mtg/mtg /mtg
