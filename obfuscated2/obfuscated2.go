@@ -8,7 +8,6 @@ import (
 	"github.com/juju/errors"
 
 	"mtg/mtproto"
-	"fmt"
 )
 
 // Obfuscated2 contains AES CTR encryption and decryption streams
@@ -25,7 +24,6 @@ type Obfuscated2 struct {
 func ParseObfuscated2ClientFrame(secrets *map[string][]byte, frame Frame) (*Obfuscated2, *mtproto.ConnectionOpts, error) {
 	var err error
 	for _, secret := range *secrets {
-		fmt.Println(secret)
 		decHasher := sha256.New()
 		decHasher.Write(frame.Key()) // nolint: errcheck, gosec
 		decHasher.Write(secret)      // nolint: errcheck, gosec

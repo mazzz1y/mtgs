@@ -1,68 +1,63 @@
 package main
 
 import (
-	"context"
 	"crypto/rand"
 	"encoding/hex"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	consul "github.com/hashicorp/consul/api"
 )
 
-var usersCollection = InitDB().Collection("users")
-
 type User struct {
-	ID      primitive.ObjectID 	`bson:"_id" json:"id"`
-	Name	string 				`bson:"name" json:"name"`
-	Secret string             	`bson:"secret" json:"secret"`
+	Name   string `json:"name"`
+	Secret []byte `json:"secret"`
+}
+
+var KV = initKV()
+
+func initKV() *consul.KV {
+	client, err := consul.NewClient(consul.DefaultConfig())
+	if err != nil {
+		panic(err)
+	}
+	kv := client.KV()
+	return kv
 }
 
 func (u User) Create() (User, error) {
-	u.ID = primitive.NewObjectID()
 	u.Secret = generateSecret()
-	_, err := usersCollection.InsertOne(context.TODO(), u)
-	hexSecret, err := hex.DecodeString(u.Secret)
-	if err != nil {
-		return u, err
-	}
-	Secrets[u.ID.String()] = hexSecret
+	p := &consul.KVPair{Key: u.Name, Value: u.Secret}
+	_, err := KV.Put(p, nil)
 	return u, err
 }
 
 func (u User) Exist() bool {
-	count, _ := usersCollection.CountDocuments(context.TODO(), bson.M{"_id": u.ID})
-	if count != 0 {
+	res, _, _ := KV.Get(u.Name, nil)
+	if res != nil {
 		return true
 	}
 	return false
 }
 
 func (u User) Delete() error {
-	err := usersCollection.FindOneAndDelete(context.TODO(), bson.M{"_id": u.ID}).Err()
-	delete(Secrets, u.ID.String())
+	_, err := KV.Delete(u.Name, nil)
 	return err
 }
 
 func (u User) GetAll() ([]User, error) {
 	var users []User
-	ctx := context.TODO()
-	cur, err := usersCollection.Find(ctx, bson.D{})
-	if err != nil { 
-		return users, err 
-	}
-	defer cur.Close(ctx)
-	for cur.Next(ctx) {
-		var res User
-		err := cur.Decode(&res)
-		if err != nil { 
-			return users, err 
-		}
-		users = append(users, res)
-	}
-	if err := cur.Err(); err != nil {
+
+	list, _, err := KV.List("", nil)
+
+	if err != nil {
 		return users, err
 	}
-	return users, nil
+
+	for _, u := range list {
+		users = append(users, User{u.Key, u.Value})
+	}
+
+	return users, err
+
 }
 
 func InitSecrets() error {
@@ -71,15 +66,13 @@ func InitSecrets() error {
 		return err
 	}
 	for _, u := range users {
-		hexSecret, err := hex.DecodeString(u.Secret)
 		if err != nil {
 			return err
 		}
-		Secrets[u.ID.String()] = hexSecret
+		Secrets[u.Name] = u.Secret
 	}
 	return err
 }
-
 
 func generateSecret() string {
 	const len = 16

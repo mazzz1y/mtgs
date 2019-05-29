@@ -1,11 +1,11 @@
 package main
- 
+
 import (
+	"fmt"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	cors "github.com/itsjamie/gin-cors"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type router struct{}
@@ -15,8 +15,8 @@ var Router router
 const path = "/mtg"
 
 type UserForm struct {
-	Name      string `form:"name" json:"name"`
-	Secret    string `form:"secret" json:"secret"`
+	Name   string `form:"name" json:"name"`
+	Secret string `form:"secret" json:"secret"`
 }
 
 func InitGin() *gin.Engine {
@@ -35,8 +35,7 @@ func InitGin() *gin.Engine {
 	{
 		users.GET("", Router.GetAll)
 		users.POST("", Router.Create)
-		// notes.PUT(":id", Router.Update)
-		users.DELETE(":id", Router.Delete)
+		users.DELETE(":name", Router.Delete)
 
 	}
 	return r
@@ -55,6 +54,7 @@ func (*router) Create(c *gin.Context) {
 	u, err := User{
 		Name: form.Name,
 	}.Create()
+	fmt.Println(err)
 
 	if err != nil {
 		c.JSON(500, gin.H{
@@ -69,8 +69,15 @@ func (*router) Create(c *gin.Context) {
 func (*router) GetAll(c *gin.Context) {
 	users, err := User{}.GetAll()
 
+	if users == nil {
+		c.JSON(404, gin.H{
+			"error": "users not found",
+		})
+		return
+	}
+
 	if err != nil {
-		c.JSON(500, gin.H{
+		c.JSON(404, gin.H{
 			"error": "server error",
 		})
 		return
@@ -79,20 +86,11 @@ func (*router) GetAll(c *gin.Context) {
 	c.JSON(200, users)
 }
 
-
-
 func (*router) Delete(c *gin.Context) {
-	id, err := primitive.ObjectIDFromHex(c.Param("id"))
-
-	if err != nil {
-		c.JSON(400, gin.H{
-			"error": "bad id",
-		})
-		return
-	}
+	name := c.Param("name")
 
 	u := User{
-		ID: id,
+		Name: name,
 	}
 
 	if !u.Exist() {
@@ -102,10 +100,14 @@ func (*router) Delete(c *gin.Context) {
 		return
 	}
 
-	if u.Delete(); err != nil {
+	err := u.Delete()
+
+	if err != nil {
 		c.JSON(500, gin.H{
 			"error": "server error",
 		})
+		fmt.Println(err)
+		return
 	}
 
 	c.JSON(200, gin.H{

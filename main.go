@@ -16,13 +16,12 @@ import (
 
 	"mtg/config"
 	"mtg/ntp"
-	"mtg/proxy" 
-	"encoding/hex" 
+	"mtg/proxy"
 )
 
 var version = "dev" // this has to be set by build ld flags
 
-var Secrets = make(map[string][]byte) 
+var Secrets = make(map[string][]byte)
 
 var (
 	app = kingpin.New("mtg", "Simple MTPROTO proxy.")
@@ -156,17 +155,10 @@ func main() { // nolint: gocyclo
 
 	kingpin.MustParse(app.Parse(os.Args[1:]))
 
-
-	h, _ := hex.DecodeString("2606bcde778d3782ead886d8f3f052c3")
-	// h1, _ := hex.DecodeString("afe2ca14bd9c903dd8bb6e7ef2b52f29")
-
-	var secrets = make(map[string][]byte) 
-	secrets["test"] = h
-
-	err := setRLimit()
-	if err != nil {
-		usage(err.Error())
-	}
+	// err := setRLimit()
+	// if err != nil {
+	// 	usage(err.Error())
+	// }
 
 	conf, err := config.NewConfig(*debug, *verbose,
 		*writeBufferSize, *readBufferSize,
@@ -175,7 +167,7 @@ func main() { // nolint: gocyclo
 		*statsdIP, *statsdNetwork, *statsdPrefix, *statsdTagsFormat,
 		*statsdTags, *prometheusPrefix, *secureOnly,
 		*antiReplayMaxSize, *antiReplayEvictionTime,
-		&secrets, *adtag,
+		&Secrets, *adtag,
 	)
 	if err != nil {
 		usage(err.Error())
@@ -223,7 +215,7 @@ func main() { // nolint: gocyclo
 
 	gin := InitGin()
 	go gin.Run(":8080")
-	
+
 	if err := server.Serve(); err != nil {
 		zap.S().Fatalw("Server stopped", "error", err)
 	}
