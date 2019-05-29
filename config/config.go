@@ -1,7 +1,6 @@
 package config
 
 import (
-	"encoding/hex"
 	"fmt"
 	"net"
 	"strconv"
@@ -45,8 +44,7 @@ type Config struct {
 		Prefix string
 	}
 
-	Secrets *map[string][]byte
-	AdTag   []byte
+	AdTag []byte
 }
 
 // URLs contains links to the proxy (tg://, t.me) and their QR codes.
@@ -80,44 +78,6 @@ func (c *Config) UseMiddleProxy() bool {
 	return len(c.AdTag) > 0
 }
 
-// BotSecretString returns secret string which should work with MTProxybot.
-func (c *Config) BotSecretString() []string {
-	var secretsArray []string
-	for _, secret := range *c.Secrets {
-		secretsArray = append(secretsArray, hex.EncodeToString(secret))
-	}
-	return secretsArray
-}
-
-// SecretString returns a secret in a form entered on the start of the
-// application.
-func (c *Config) SecretString() string {
-	secret := c.BotSecretString()
-	if c.SecureMode {
-		return "dd" + secret[0]
-	}
-	// TODO
-	// hardcoded to first secret
-	return secret[0]
-}
-
-// GetURLs returns configured IPURLs instance with links to this server.
-func (c *Config) GetURLs() IPURLs {
-	urls := IPURLs{}
-	secret := c.SecretString()
-	if c.PublicIPv4 != nil {
-		urls.IPv4 = getURLs(c.PublicIPv4, c.PublicIPv4Port, secret)
-	}
-	if c.PublicIPv6 != nil {
-		urls.IPv6 = getURLs(c.PublicIPv6, c.PublicIPv6Port, secret)
-	}
-	// TODO
-	// hardcoded to first secret
-	urls.BotSecret = c.BotSecretString()[0]
-
-	return urls
-}
-
 func getAddr(host fmt.Stringer, port uint16) string {
 	return net.JoinHostPort(host.String(), strconv.Itoa(int(port)))
 }
@@ -133,7 +93,6 @@ func NewConfig(debug, verbose bool, // nolint: gocyclo
 	statsdTags map[string]string, prometheusPrefix string,
 	secureOnly bool,
 	antiReplayMaxSize int, antiReplayEvictionTime time.Duration,
-	secrets *map[string][]byte,
 	adtag []byte) (*Config, error) {
 	secureMode := secureOnly
 
@@ -178,7 +137,6 @@ func NewConfig(debug, verbose bool, // nolint: gocyclo
 		PublicIPv6Port:         publicIPv6Port,
 		StatsIP:                statsIP,
 		StatsPort:              statsPort,
-		Secrets:                secrets,
 		AdTag:                  adtag,
 		SecureMode:             secureMode,
 		ReadBufferSize:         int(readBufferSize),

@@ -1,8 +1,7 @@
-package main
+package users
 
 import (
 	"crypto/rand"
-	"encoding/hex"
 
 	consul "github.com/hashicorp/consul/api"
 )
@@ -60,23 +59,21 @@ func (u User) GetAll() ([]User, error) {
 
 }
 
-func InitSecrets() error {
+func InitSecrets() ([][]byte, error) {
+	var secrets [][]byte
 	users, err := User{}.GetAll()
 	if err != nil {
-		return err
+		return secrets, err
 	}
 	for _, u := range users {
-		if err != nil {
-			return err
-		}
-		Secrets[u.Name] = u.Secret
+		secrets = append(secrets, u.Secret)
 	}
-	return err
+	return secrets, err
 }
 
-func generateSecret() string {
+func generateSecret() []byte {
 	const len = 16
 	bytes := make([]byte, len)
 	rand.Read(bytes)
-	return hex.EncodeToString(bytes)
+	return bytes
 }

@@ -20,7 +20,7 @@ const handshakeTimeout = 10 * time.Second
 // Telegram directly.
 func DirectInit(ctx context.Context, cancel context.CancelFunc, socket net.Conn,
 	connID string, antiReplayCache antireplay.Cache,
-	conf *config.Config) (wrappers.Wrap, *mtproto.ConnectionOpts, error) {
+	conf *config.Config, secrets [][]byte) (wrappers.Wrap, *mtproto.ConnectionOpts, error) {
 	tcpSocket := socket.(*net.TCPConn)
 	if err := tcpSocket.SetNoDelay(false); err != nil {
 		return nil, nil, errors.Annotate(err, "Cannot disable NO_DELAY to client socket")
@@ -40,7 +40,7 @@ func DirectInit(ctx context.Context, cancel context.CancelFunc, socket net.Conn,
 	socket.SetReadDeadline(time.Time{}) // nolint: errcheck, gosec
 
 	conn := wrappers.NewConn(ctx, cancel, socket, connID, wrappers.ConnPurposeClient, conf.PublicIPv4, conf.PublicIPv6)
-	obfs2, connOpts, err := obfuscated2.ParseObfuscated2ClientFrame(conf.Secrets, frame)
+	obfs2, connOpts, err := obfuscated2.ParseObfuscated2ClientFrame(secrets, frame)
 	if err != nil {
 		return nil, nil, errors.Annotate(err, "Cannot parse obfuscated frame")
 	}

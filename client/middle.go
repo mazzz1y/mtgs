@@ -14,8 +14,8 @@ import (
 // support promoted channels, connect to Telegram middle proxies etc.
 func MiddleInit(ctx context.Context, cancel context.CancelFunc, socket net.Conn,
 	connID string, antiReplayCache antireplay.Cache,
-	conf *config.Config) (wrappers.Wrap, *mtproto.ConnectionOpts, error) {
-	conn, opts, err := DirectInit(ctx, cancel, socket, connID, antiReplayCache, conf)
+	conf *config.Config, secrets [][]byte) (wrappers.Wrap, *mtproto.ConnectionOpts, error) {
+	conn, opts, err := DirectInit(ctx, cancel, socket, connID, antiReplayCache, conf, secrets)
 	if err != nil {
 		return nil, nil, err
 	}

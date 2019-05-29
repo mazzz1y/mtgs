@@ -15,6 +15,7 @@ import (
 	"mtg/config"
 	"mtg/mtproto"
 	"mtg/telegram"
+	"mtg/users"
 	"mtg/wrappers"
 )
 
@@ -24,6 +25,7 @@ type Proxy struct {
 	clientInit      client.Init
 	tg              telegram.Telegram
 	conf            *config.Config
+	secrets         func() ([][]byte, error)
 }
 
 // Serve runs TCP proxy server.
@@ -58,7 +60,12 @@ func (p *Proxy) accept(conn net.Conn) {
 
 	log.Infow("Client connected", "addr", conn.RemoteAddr())
 
-	clientConn, opts, err := p.clientInit(ctx, cancel, conn, connID, p.antiReplayCache, p.conf)
+	secrets, err := p.secrets()
+	if err != nil {
+		log.Errorw("Failed to get secrets", "error", err)
+	}
+
+	clientConn, opts, err := p.clientInit(ctx, cancel, conn, connID, p.antiReplayCache, p.conf, secrets)
 	if err != nil {
 		log.Errorw("Cannot initialize client connection", "error", err)
 		return
@@ -169,5 +176,6 @@ func NewProxy(conf *config.Config) (*Proxy, error) {
 		conf:            conf,
 		clientInit:      clientInit,
 		tg:              tg,
+		secrets:         users.InitSecrets,
 	}, nil
 }

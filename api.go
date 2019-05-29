@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"mtg/users"
+
 	"github.com/gin-gonic/gin"
 	cors "github.com/itsjamie/gin-cors"
 )
@@ -51,7 +53,7 @@ func (*router) Create(c *gin.Context) {
 		return
 	}
 
-	u, err := User{
+	u, err := users.User{
 		Name: form.Name,
 	}.Create()
 	fmt.Println(err)
@@ -67,7 +69,7 @@ func (*router) Create(c *gin.Context) {
 }
 
 func (*router) GetAll(c *gin.Context) {
-	users, err := User{}.GetAll()
+	users, err := users.User{}.GetAll()
 
 	if users == nil {
 		c.JSON(404, gin.H{
@@ -89,7 +91,7 @@ func (*router) GetAll(c *gin.Context) {
 func (*router) Delete(c *gin.Context) {
 	name := c.Param("name")
 
-	u := User{
+	u := users.User{
 		Name: name,
 	}
 

@@ -21,8 +21,6 @@ import (
 
 var version = "dev" // this has to be set by build ld flags
 
-var Secrets = make(map[string][]byte)
-
 var (
 	app = kingpin.New("mtg", "Simple MTPROTO proxy.")
 
@@ -167,7 +165,7 @@ func main() { // nolint: gocyclo
 		*statsdIP, *statsdNetwork, *statsdPrefix, *statsdTagsFormat,
 		*statsdTags, *prometheusPrefix, *secureOnly,
 		*antiReplayMaxSize, *antiReplayEvictionTime,
-		&Secrets, *adtag,
+		*adtag,
 	)
 	if err != nil {
 		usage(err.Error())
