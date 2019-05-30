@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/juju/errors"
-	statsd "gopkg.in/alexcesaro/statsd.v2"
 )
 
 // Config represents common configuration of mtg.
@@ -23,26 +22,13 @@ type Config struct {
 	BindPort       uint16
 	PublicIPv4Port uint16
 	PublicIPv6Port uint16
-	StatsPort      uint16
 
 	BindIP     net.IP
 	PublicIPv4 net.IP
 	PublicIPv6 net.IP
-	StatsIP    net.IP
 
 	AntiReplayMaxSize      int
 	AntiReplayEvictionTime time.Duration
-
-	StatsD struct {
-		Addr       net.Addr
-		Prefix     string
-		Tags       map[string]string
-		TagsFormat statsd.TagFormat
-		Enabled    bool
-	}
-	Prometheus struct {
-		Prefix string
-	}
 
 	AdTag []byte
 }
@@ -67,11 +53,6 @@ func (c *Config) BindAddr() string {
 	return getAddr(c.BindIP, c.BindPort)
 }
 
-// StatAddr returns connection string to the stats API.
-func (c *Config) StatAddr() string {
-	return getAddr(c.StatsIP, c.StatsPort)
-}
-
 // UseMiddleProxy defines if this proxy has to connect middle proxies
 // which supports promoted channels or directly access Telegram.
 func (c *Config) UseMiddleProxy() bool {
@@ -87,10 +68,8 @@ func getAddr(host fmt.Stringer, port uint16) string {
 // function, should come from command line arguments.
 func NewConfig(debug, verbose bool, // nolint: gocyclo
 	writeBufferSize, readBufferSize uint32,
-	bindIP, publicIPv4, publicIPv6, statsIP net.IP,
-	bindPort, publicIPv4Port, publicIPv6Port, statsPort, statsdPort uint16,
-	statsdIP, statsdNetwork, statsdPrefix, statsdTagsFormat string,
-	statsdTags map[string]string, prometheusPrefix string,
+	bindIP, publicIPv4, publicIPv6 net.IP,
+	bindPort, publicIPv4Port, publicIPv6Port uint16,
 	secureOnly bool,
 	antiReplayMaxSize int, antiReplayEvictionTime time.Duration,
 	adtag []byte) (*Config, error) {
@@ -121,10 +100,6 @@ func NewConfig(debug, verbose bool, // nolint: gocyclo
 		publicIPv6Port = bindPort
 	}
 
-	if statsIP == nil {
-		statsIP = publicIPv4
-	}
-
 	conf := &Config{
 		Debug:                  debug,
 		Verbose:                verbose,
@@ -135,49 +110,12 @@ func NewConfig(debug, verbose bool, // nolint: gocyclo
 		PublicIPv4Port:         publicIPv4Port,
 		PublicIPv6:             publicIPv6,
 		PublicIPv6Port:         publicIPv6Port,
-		StatsIP:                statsIP,
-		StatsPort:              statsPort,
 		AdTag:                  adtag,
 		SecureMode:             secureMode,
 		ReadBufferSize:         int(readBufferSize),
 		WriteBufferSize:        int(writeBufferSize),
 		AntiReplayMaxSize:      antiReplayMaxSize,
 		AntiReplayEvictionTime: antiReplayEvictionTime,
-	}
-	conf.Prometheus.Prefix = prometheusPrefix
-
-	if statsdIP != "" {
-		conf.StatsD.Enabled = true
-		conf.StatsD.Prefix = statsdPrefix
-		conf.StatsD.Tags = statsdTags
-
-		var (
-			addr net.Addr
-			err  error
-		)
-		hostPort := net.JoinHostPort(statsdIP, strconv.Itoa(int(statsdPort)))
-		switch statsdNetwork {
-		case "tcp":
-			addr, err = net.ResolveTCPAddr("tcp", hostPort)
-		case "udp":
-			addr, err = net.ResolveUDPAddr("udp", hostPort)
-		default:
-			err = errors.Errorf("Unknown network %s", statsdNetwork)
-		}
-		if err != nil {
-			return nil, errors.Annotate(err, "Cannot resolve statsd address")
-		}
-		conf.StatsD.Addr = addr
-
-		switch statsdTagsFormat {
-		case "datadog":
-			conf.StatsD.TagsFormat = statsd.Datadog
-		case "influxdb":
-			conf.StatsD.TagsFormat = statsd.InfluxDB
-		case "":
-		default:
-			return nil, errors.Errorf("Unknown tags format %s", statsdTagsFormat)
-		}
 	}
 
 	return conf, nil

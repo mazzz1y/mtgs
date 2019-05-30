@@ -1,11 +1,9 @@
 package obfuscated2
 
 import (
-	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/sha256"
-	"fmt"
 
 	"github.com/juju/errors"
 
@@ -41,7 +39,6 @@ func ParseObfuscated2ClientFrame(secrets [][]byte, frame Frame) (*Obfuscated2, *
 		decryptor.XORKeyStream(decryptedFrame, frame)
 		connType, err := decryptedFrame.ConnectionType()
 		if err != nil {
-			fmt.Println(bytes.NewBuffer(secret).String() + " failed")
 			continue
 		}
 		obfs := &Obfuscated2{

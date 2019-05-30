@@ -54,7 +54,9 @@ func (p *Proxy) accept(conn net.Conn) {
 		conn.Close() // nolint: errcheck, gosec
 
 		if err := recover(); err != nil {
-			log.Errorw("Crash of accept handler", "error", err)
+			// TODO
+			// only in debug mode
+			// log.Errorw("Crash of accept handler", "error", err)
 		}
 	}()
 

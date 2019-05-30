@@ -15,7 +15,11 @@ type User struct {
 var KV = initKV()
 
 func initKV() *consul.KV {
-	client, err := consul.NewClient(consul.DefaultConfig())
+	conf := consul.Config{
+		Address: "127.0.0.1:8500",
+		Scheme:  "http",
+	}
+	client, err := consul.NewClient(&conf)
 	if err != nil {
 		panic(err)
 	}

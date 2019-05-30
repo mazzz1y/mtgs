@@ -6,9 +6,11 @@ import (
 	"io"
 	"math/rand"
 	"os"
+	"strconv"
 	"syscall"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/juju/errors"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -22,7 +24,7 @@ import (
 var version = "dev" // this has to be set by build ld flags
 
 var (
-	app = kingpin.New("mtg", "Simple MTPROTO proxy.")
+	app = kingpin.New("mtgm", "Multiuser MTPROTO proxy")
 
 	debug = app.Flag("debug",
 		"Run in debug mode.").
@@ -39,13 +41,19 @@ var (
 		"Which IP to bind to.").
 		Short('b').
 		Envar("MTG_IP").
-		Default("127.0.0.1").
+		Default("0.0.0.0").
 		IP()
-	bindPort = app.Flag("bind-port",
+	bindPort = app.Flag("port",
 		"Which port to bind to.").
-		Short('p').
+		Short('P').
 		Envar("MTG_PORT").
 		Default("3128").
+		Uint16()
+	bindAPIPort = app.Flag("port-api",
+		"Which port to bind to.").
+		Short('p').
+		Envar("MTG_API_PORT").
+		Default("8080").
 		Uint16()
 
 	publicIPv4 = app.Flag("public-ipv4",
@@ -67,54 +75,6 @@ var (
 		"Which IPv6 port is public. Default is 'bind-port' value.").
 		Envar("MTG_IPV6_PORT").
 		Uint16()
-
-	statsIP = app.Flag("stats-ip",
-		"Which IP bind stats server to.").
-		Short('t').
-		Envar("MTG_STATS_IP").
-		Default("127.0.0.1").
-		IP()
-	statsPort = app.Flag("stats-port",
-		"Which port bind stats to.").
-		Short('q').
-		Envar("MTG_STATS_PORT").
-		Default("3129").
-		Uint16()
-
-	statsdIP = app.Flag("statsd-ip",
-		"Which IP should we use for working with statsd.").
-		Envar("MTG_STATSD_IP").
-		String()
-	statsdPort = app.Flag("statsd-port",
-		"Which port should we use for working with statsd.").
-		Envar("MTG_STATSD_PORT").
-		Default("8125").
-		Uint16()
-	statsdNetwork = app.Flag("statsd-network",
-		"Which network is used to work with statsd. Only 'tcp' and 'udp' are supported.").
-		Envar("MTG_STATSD_NETWORK").
-		Default("udp").
-		String()
-	statsdPrefix = app.Flag("statsd-prefix",
-		"Which bucket prefix should we use for sending stats to statsd.").
-		Envar("MTG_STATSD_PREFIX").
-		Default("mtg").
-		String()
-	statsdTagsFormat = app.Flag("statsd-tags-format",
-		"Which tag format should we use to send stats metrics. Valid options are 'datadog' and 'influxdb'.").
-		Envar("MTG_STATSD_TAGS_FORMAT").
-		String()
-	statsdTags = app.Flag("statsd-tags",
-		"Tags to use for working with statsd (specified as 'key=value').").
-		Envar("MTG_STATSD_TAGS").
-		StringMap()
-
-	prometheusPrefix = app.Flag("prometheus-prefix",
-		"Which namespace to use to send stats to Prometheus.").
-		Envar("MTG_PROMETHEUS_PREFIX").
-		Default("mtg").
-		String()
-
 	writeBufferSize = app.Flag("write-buffer",
 		"Write buffer size in bytes. You can think about it as a buffer from client to Telegram.").
 		Short('w').
@@ -143,7 +103,12 @@ var (
 		Envar("MTG_ANTIREPLAY_EVICTIONTIME").
 		Default("168h").
 		Duration()
-	adtag = app.Arg("adtag", "ADTag of the proxy.").HexBytes()
+
+	adtag = app.Flag("adtag",
+		"ADTag of the proxy.").
+		Short('a').
+		Envar("MTG_ADTAG").
+		HexBytes()
 )
 
 func main() { // nolint: gocyclo
@@ -153,17 +118,16 @@ func main() { // nolint: gocyclo
 
 	kingpin.MustParse(app.Parse(os.Args[1:]))
 
-	// err := setRLimit()
-	// if err != nil {
-	// 	usage(err.Error())
-	// }
+	err := setRLimit()
+	if err != nil {
+		// non-critical
+		fmt.Println(err.Error())
+	}
 
 	conf, err := config.NewConfig(*debug, *verbose,
 		*writeBufferSize, *readBufferSize,
-		*bindIP, *publicIPv4, *publicIPv6, *statsIP,
-		*bindPort, *publicIPv4Port, *publicIPv6Port, *statsPort, *statsdPort,
-		*statsdIP, *statsdNetwork, *statsdPrefix, *statsdTagsFormat,
-		*statsdTags, *prometheusPrefix, *secureOnly,
+		*bindIP, *publicIPv4, *publicIPv6,
+		*bindPort, *publicIPv4Port, *publicIPv6Port, *secureOnly,
 		*antiReplayMaxSize, *antiReplayEvictionTime,
 		*adtag,
 	)
@@ -179,6 +143,7 @@ func main() { // nolint: gocyclo
 		atom.SetLevel(zapcore.InfoLevel)
 	default:
 		atom.SetLevel(zapcore.ErrorLevel)
+		gin.SetMode(gin.ReleaseMode)
 	}
 	encoderCfg := zap.NewProductionEncoderConfig()
 	logger := zap.New(zapcore.NewCore(
@@ -211,8 +176,9 @@ func main() { // nolint: gocyclo
 		panic(err)
 	}
 
-	gin := InitGin()
-	go gin.Run(":8080")
+	api := InitGin()
+	apiListenAddr := bindIP.String() + ":" + strconv.Itoa(int(*bindAPIPort))
+	go api.Run(apiListenAddr)
 
 	if err := server.Serve(); err != nil {
 		zap.S().Fatalw("Server stopped", "error", err)
