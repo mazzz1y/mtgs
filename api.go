@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"encoding/hex"
 	"time"
 
 	"mtg/users"
@@ -63,12 +63,13 @@ func (*router) Create(c *gin.Context) {
 		})
 		return
 	}
-
-	c.JSON(200, UserForm{Name: u.Name, Secret: fmt.Sprintf("%s", u.Secret)})
+	secret := "dd" + hex.EncodeToString(u.Secret)
+	c.JSON(200, UserForm{Name: u.Name, Secret: secret})
 }
 
 func (*router) GetAll(c *gin.Context) {
 	users, err := users.User{}.GetAll()
+	var forms []UserForm
 
 	if users == nil {
 		c.JSON(404, gin.H{
@@ -84,7 +85,11 @@ func (*router) GetAll(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, users)
+	for _, u := range users {
+		forms = append(forms, UserForm{u.Name, "dd" + hex.EncodeToString(u.Secret)})
+	}
+
+	c.JSON(200, forms)
 }
 
 func (*router) Delete(c *gin.Context) {
@@ -107,7 +112,6 @@ func (*router) Delete(c *gin.Context) {
 		c.JSON(500, gin.H{
 			"error": "server error",
 		})
-		fmt.Println(err)
 		return
 	}
 

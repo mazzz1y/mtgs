@@ -74,11 +74,10 @@ func InitSecrets() ([][]byte, error) {
 
 func generateSecret() []byte {
 	const lenght = 16
-	u
 	src := make([]byte, lenght)
 	rand.Read(src)
 
 	hexString := hex.EncodeToString(src)
-
-	return []byte(hexString)
+	h, _ := hex.DecodeString(hexString)
+	return h
 }
