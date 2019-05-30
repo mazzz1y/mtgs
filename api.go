@@ -56,7 +56,6 @@ func (*router) Create(c *gin.Context) {
 	u, err := users.User{
 		Name: form.Name,
 	}.Create()
-	fmt.Println(err)
 
 	if err != nil {
 		c.JSON(500, gin.H{
@@ -65,7 +64,7 @@ func (*router) Create(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, u)
+	c.JSON(200, UserForm{Name: u.Name, Secret: fmt.Sprintf("%s", u.Secret)})
 }
 
 func (*router) GetAll(c *gin.Context) {

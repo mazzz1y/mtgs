@@ -2,6 +2,7 @@ package users
 
 import (
 	"crypto/rand"
+	"encoding/hex"
 
 	consul "github.com/hashicorp/consul/api"
 )
@@ -72,8 +73,12 @@ func InitSecrets() ([][]byte, error) {
 }
 
 func generateSecret() []byte {
-	const len = 16
-	bytes := make([]byte, len)
-	rand.Read(bytes)
-	return bytes
+	const lenght = 16
+	u
+	src := make([]byte, lenght)
+	rand.Read(src)
+
+	hexString := hex.EncodeToString(src)
+
+	return []byte(hexString)
 }
