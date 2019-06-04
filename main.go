@@ -39,12 +39,12 @@ var (
 
 	consulHost = app.Flag("consul-host",
 		"Which host use for consul.").
-		Envar("CONSUL_HOST").
+		Envar("MTG_CONSUL_HOST").
 		Default("127.0.0.1").
 		String()
 	consulPort = app.Flag("consul-port",
 		"Which port use for consul.").
-		Envar("CONSUL_PORT").
+		Envar("MTG_CONSUL_PORT").
 		Default("8500").
 		Uint16()
 
@@ -67,7 +67,7 @@ var (
 		Envar("MTG_API_PORT").
 		Default("8080").
 		Uint16()
-	apiBasepath = app.Flag("path",
+	apiBasepath = app.Flag("api-path",
 		"Which path use for API.").
 		Envar("MTG_API_PATH").
 		Default("/mtg").
