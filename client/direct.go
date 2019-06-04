@@ -7,11 +7,11 @@ import (
 
 	"github.com/juju/errors"
 
-	"mtg/antireplay"
-	"mtg/config"
-	"mtg/mtproto"
-	"mtg/obfuscated2"
-	"mtg/wrappers"
+	"mtgs/antireplay"
+	"mtgs/config"
+	"mtgs/mtproto"
+	"mtgs/obfuscated2"
+	"mtgs/wrappers"
 )
 
 const handshakeTimeout = 10 * time.Second

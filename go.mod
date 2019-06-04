@@ -1,4 +1,4 @@
-module mtg
+module mtgs
 
 replace github.com/golang/lint => github.com/golang/lint v0.0.0-20190227174305-8f45f776aaf1
 
@@ -22,11 +22,11 @@ require (
 	github.com/tidwall/pretty v0.0.0-20190325153808-1166b9ac2b65 // indirect
 	github.com/xdg/scram v0.0.0-20180814205039-7eeb5667e42c // indirect
 	github.com/xdg/stringprep v1.0.0 // indirect
-	go.mongodb.org/mongo-driver v1.0.2
+	go.mongodb.org/mongo-driver v1.0.2 // indirect
 	go.uber.org/atomic v1.4.0 // indirect
 	go.uber.org/multierr v1.1.0 // indirect
 	go.uber.org/zap v1.9.1
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
-	gopkg.in/alexcesaro/statsd.v2 v2.0.0
+	gopkg.in/alexcesaro/statsd.v2 v2.0.0 // indirect
 	gopkg.in/mgo.v2 v2.0.0-20180705113604-9856a29383ce // indirect
 )

@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"mtg/mtproto"
+	"mtgs/mtproto"
 )
 
 func TestObfs2TelegramFrameDecrypt(t *testing.T) {

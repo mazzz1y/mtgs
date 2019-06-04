@@ -3,7 +3,7 @@ package users
 import (
 	"crypto/rand"
 	"encoding/hex"
-	"mtg/config"
+	"mtgs/config"
 	"strconv"
 
 	consul "github.com/hashicorp/consul/api"

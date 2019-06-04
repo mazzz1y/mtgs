@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	cors "github.com/itsjamie/gin-cors"
 
-	"mtg/config"
+	"mtgs/config"
 
 	"go.uber.org/zap"
 )

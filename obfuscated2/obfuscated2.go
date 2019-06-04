@@ -7,7 +7,7 @@ import (
 
 	"github.com/juju/errors"
 
-	"mtg/mtproto"
+	"mtgs/mtproto"
 )
 
 // Obfuscated2 contains AES CTR encryption and decryption streams

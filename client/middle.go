@@ -4,10 +4,10 @@ import (
 	"context"
 	"net"
 
-	"mtg/antireplay"
-	"mtg/config"
-	"mtg/mtproto"
-	"mtg/wrappers"
+	"mtgs/antireplay"
+	"mtgs/config"
+	"mtgs/mtproto"
+	"mtgs/wrappers"
 )
 
 // MiddleInit initializes client connection for proxy which has to

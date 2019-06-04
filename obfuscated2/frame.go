@@ -8,7 +8,7 @@ import (
 
 	"github.com/juju/errors"
 
-	"mtg/mtproto"
+	"mtgs/mtproto"
 )
 
 // [frameOffsetFirst:frameOffsetKey:frameOffsetIV:frameOffsetMagic:frameOffsetDC:frameOffsetEnd]

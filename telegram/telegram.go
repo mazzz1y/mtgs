@@ -6,8 +6,8 @@ import (
 
 	"github.com/juju/errors"
 
-	"mtg/mtproto"
-	"mtg/wrappers"
+	"mtgs/mtproto"
+	"mtgs/wrappers"
 )
 
 // Telegram is an interface for different Telegram work modes.

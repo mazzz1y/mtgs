@@ -5,7 +5,7 @@ import (
 	"encoding/binary"
 	"math/rand"
 
-	"mtg/mtproto"
+	"mtgs/mtproto"
 )
 
 // MTProtoIntermediateSecure is an extension of MTProtoIntermediate

@@ -10,13 +10,13 @@ import (
 	"github.com/juju/errors"
 	"go.uber.org/zap"
 
-	"mtg/antireplay"
-	"mtg/client"
-	"mtg/config"
-	"mtg/mtproto"
-	"mtg/telegram"
-	"mtg/users"
-	"mtg/wrappers"
+	"mtgs/antireplay"
+	"mtgs/client"
+	"mtgs/config"
+	"mtgs/mtproto"
+	"mtgs/telegram"
+	"mtgs/users"
+	"mtgs/wrappers"
 )
 
 // Proxy is a core of this program.

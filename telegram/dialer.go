@@ -7,8 +7,8 @@ import (
 
 	"github.com/juju/errors"
 
-	"mtg/config"
-	"mtg/wrappers"
+	"mtgs/config"
+	"mtgs/wrappers"
 )
 
 const telegramDialTimeout = 10 * time.Second

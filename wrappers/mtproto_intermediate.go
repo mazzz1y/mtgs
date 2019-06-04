@@ -9,7 +9,7 @@ import (
 	"github.com/juju/errors"
 	"go.uber.org/zap"
 
-	"mtg/mtproto"
+	"mtgs/mtproto"
 )
 
 const mtprotoIntermediateQuickAckLength = 0x80000000

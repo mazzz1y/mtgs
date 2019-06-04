@@ -1,9 +1,9 @@
 #!/bin/bash
 set -eu -o pipefail
 
-IMAGE_NAME="nineseconds/mtg"
-CONTAINER_NAME="mtg"
-SECRET_PATH="$HOME/.mtg.secret"
+IMAGE_NAME="nineseconds/mtgs"
+CONTAINER_NAME="mtgs"
+SECRET_PATH="$HOME/.mtgs.secret"
 PROXY_PORT=444
 STAT_PORT=3129
 

@@ -15,8 +15,8 @@ import (
 	"github.com/juju/errors"
 	"go.uber.org/zap"
 
-	"mtg/mtproto"
-	"mtg/wrappers"
+	"mtgs/mtproto"
+	"mtgs/wrappers"
 )
 
 const (
@@ -26,7 +26,7 @@ const (
 	tgAddrProxySecret = "https://core.telegram.org/getProxySecret"   // nolint: gas
 	tgAddrProxyV4     = "https://core.telegram.org/getProxyConfig"   // nolint: gas
 	tgAddrProxyV6     = "https://core.telegram.org/getProxyConfigV6" // nolint: gas
-	tgUserAgent       = "mtg"
+	tgUserAgent       = "mtgs"
 )
 
 var middleTelegramProxyConfigSplitter = regexp.MustCompile(`\s+`)

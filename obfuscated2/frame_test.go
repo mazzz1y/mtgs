@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"mtg/mtproto"
+	"mtgs/mtproto"
 )
 
 func TestFrameKey(t *testing.T) {

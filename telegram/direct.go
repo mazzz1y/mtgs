@@ -6,10 +6,10 @@ import (
 
 	"github.com/juju/errors"
 
-	"mtg/config"
-	"mtg/mtproto"
-	"mtg/obfuscated2"
-	"mtg/wrappers"
+	"mtgs/config"
+	"mtgs/mtproto"
+	"mtgs/obfuscated2"
+	"mtgs/wrappers"
 )
 
 const (

@@ -12,12 +12,12 @@ RUN set -x \
     make \
     upx
 
-COPY . /go/src/mtg/
+COPY . /go/src/mtgs/
 
 RUN set -x \
-  && cd /go/src/mtg \
+  && cd /go/src/mtgs \
   && make -j 4 static \
-  && upx --ultra-brute -qq ./mtg
+  && upx --ultra-brute -qq ./mtgs
 
 
 ###############################################################################
@@ -25,7 +25,7 @@ RUN set -x \
 
 FROM scratch
 
-ENTRYPOINT ["/mtg"]
+ENTRYPOINT ["/mtgs"]
 ENV MTG_IP=0.0.0.0 \
     MTG_PORT=3128 \
     MTG_STATS_IP=0.0.0.0 \
@@ -33,4 +33,4 @@ ENV MTG_IP=0.0.0.0 \
 EXPOSE 3128 3129
 
 COPY --from=0 /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
-COPY --from=0 /go/src/mtg/mtg /mtg
+COPY --from=0 /go/src/mtgs/mtgs /mtgs

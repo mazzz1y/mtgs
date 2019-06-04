@@ -9,7 +9,7 @@ import (
 	"github.com/juju/errors"
 )
 
-// Config represents common configuration of mtg.
+// Config represents common configuration of mtgs.
 type Config struct {
 	Debug      bool
 	Verbose    bool

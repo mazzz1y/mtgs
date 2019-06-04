@@ -1,5 +1,5 @@
 ROOT_DIR     := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
-IMAGE_NAME   := mtg
+IMAGE_NAME   := mtgs
 APP_NAME     := $(IMAGE_NAME)
 
 CC_BINARIES  := $(shell bash -c "echo -n $(APP_NAME)-{linux,freebsd,openbsd}-{386,amd64} $(APP_NAME)-linux-{arm,arm64}")
