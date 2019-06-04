@@ -4,6 +4,11 @@ Fork from [mtg](https://github.com/9seconds/mtg)
 
 Bullshit MTPROTO proxy for Telegram with per-user tokens and RestAPI for that. Using [Consul](https://consul.io) as KV storage
 
+## TODO
+
+* Add docker-compose
+* Add Helm chart for k8s
+
 ## API Documentation
 
 Please see [API.md](API.md)
