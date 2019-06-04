@@ -1,3 +1,9 @@
+# API documentation
+
+## Authorization
+
+Your API token should be provided in `Authorization` header. Please see environment variables in [README.md](../README.md)
+
 ## Create a user(or get a new token)
 
 Request:
@@ -38,7 +44,14 @@ GET http://localhost:8080/mtgs
 
 Response:
 ```
-{
-    "status": "deleted"
-}
+[
+    {
+        "name": "username1",
+        "secret": "dd851e19bb60a6d137a97b87b6193bb70e"
+    },
+    {
+        "name": "username2",
+        "secret": "dd7fcae07fe22f4a8fb332db5a0419f019"
+    }
+]
 ```

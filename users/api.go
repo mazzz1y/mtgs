@@ -133,7 +133,7 @@ func (*apiMethods) delete(c *gin.Context) {
 	}
 
 	c.JSON(200, gin.H{
-		"status": "ok",
+		"status": "deleted",
 	})
 }
 
