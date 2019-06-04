@@ -1,5 +1,7 @@
 # mtgs
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/dmirubtsov/mtgs)
+
 Fork from [mtg](https://github.com/9seconds/mtg)
 
 Bullshit MTPROTO proxy for Telegram with per-user tokens and RestAPI for that. Using [Consul](https://consul.io) as KV storage
