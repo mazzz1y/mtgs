@@ -1,6 +1,6 @@
 # mtgs
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/dmirubtsov/mtgs)](https://goreportcard.com/badge/github.com/dmirubtsov/mtgs)
+[![Go Report Card](https://goreportcard.com/badge/github.com/dmirubtsov/mtgs)](https://goreportcard.com/report/github.com/dmirubtsov/mtgs)
 
 Bullshit MTPROTO proxy for Telegram with per-user tokens and RestAPI for that. Using [Consul](https://consul.io) as KV storage
 
@@ -16,6 +16,10 @@ Example of docker-compose with [Traefik](https://traefik.io) as proxy for API:
 
 ```
 version: '3'
+
+networks:
+  proxy:
+    external: true
 
 services:
 
