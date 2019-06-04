@@ -1,13 +1,43 @@
 # mtgs
 
-![Go Report Card](https://goreportcard.com/badge/github.com/dmirubtsov/mtgs)
+[![Go Report Card](https://goreportcard.com/badge/github.com/dmirubtsov/mtgs)](https://goreportcard.com/badge/github.com/dmirubtsov/mtgs)
 
 Bullshit MTPROTO proxy for Telegram with per-user tokens and RestAPI for that. Using [Consul](https://consul.io) as KV storage
 
 ## TODO
 
-* Add docker-compose
 * Add Helm chart for k8s
+
+## Deployment
+
+### docker-compose
+
+Example of docker-compose with [Traefik](https://traefik.io) as proxy for API:
+
+```
+version: '3'
+
+services:
+
+  mtgs:
+      image: mazy/mtgs:latest
+      ports:
+        - 3128:3128
+      environment:
+        MTGS_CONSUL_HOST: consul
+      depends_on: 
+        - consul
+      labels:
+        - "traefik.enable=true"
+        - "traefik.frontend.rule=Host:example.com;PathPrefix:/mtgs"
+        - "traefik.port=8080"
+        - "traefik.docker.network=proxy"
+
+  consul:
+    image: bitnami/consul:latest
+    volumes:
+      - .data/consul:/bitnami
+```
 
 ## API Documentation
 
