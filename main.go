@@ -6,7 +6,6 @@ import (
 	"io"
 	"math/rand"
 	"os"
-	"strconv"
 	"syscall"
 	"time"
 
@@ -19,12 +18,13 @@ import (
 	"mtg/config"
 	"mtg/ntp"
 	"mtg/proxy"
+	"mtg/users"
 )
 
 var version = "dev" // this has to be set by build ld flags
 
 var (
-	app = kingpin.New("mtgm", "Multiuser MTPROTO proxy")
+	app = kingpin.New("mtg", "Multiuser MTPROTO proxy")
 
 	debug = app.Flag("debug",
 		"Run in debug mode.").
@@ -36,6 +36,17 @@ var (
 		Short('v').
 		Envar("MTG_VERBOSE").
 		Bool()
+
+	consulHost = app.Flag("consul-host",
+		"Which host use for consul.").
+		Envar("CONSUL_HOST").
+		Default("127.0.0.1").
+		String()
+	consulPort = app.Flag("consul-port",
+		"Which port use for consul.").
+		Envar("CONSUL_PORT").
+		Default("8500").
+		Uint16()
 
 	bindIP = app.Flag("bind-ip",
 		"Which IP to bind to.").
@@ -49,12 +60,24 @@ var (
 		Envar("MTG_PORT").
 		Default("3128").
 		Uint16()
-	bindAPIPort = app.Flag("port-api",
+
+	bindAPIPort = app.Flag("api-port",
 		"Which port to bind to.").
 		Short('p').
 		Envar("MTG_API_PORT").
 		Default("8080").
 		Uint16()
+	apiBasepath = app.Flag("path",
+		"Which path use for API.").
+		Envar("MTG_API_PATH").
+		Default("/mtg").
+		String()
+	apiToken = app.Flag("api-token",
+		"Which token use for API authorization.").
+		Envar("MTG_API_TOKEN").
+		Short('t').
+		Default("").
+		String()
 
 	publicIPv4 = app.Flag("public-ipv4",
 		"Which IPv4 address is public.").
@@ -120,15 +143,16 @@ func main() { // nolint: gocyclo
 
 	err := setRLimit()
 	if err != nil {
-		// non-critical
-		fmt.Println(err.Error())
+		zap.S().Infow(err.Error())
 	}
 
 	conf, err := config.NewConfig(*debug, *verbose,
 		*writeBufferSize, *readBufferSize,
 		*bindIP, *publicIPv4, *publicIPv6,
-		*bindPort, *publicIPv4Port, *publicIPv6Port, *secureOnly,
-		*antiReplayMaxSize, *antiReplayEvictionTime,
+		*bindPort, *bindAPIPort, *publicIPv4Port, *publicIPv6Port,
+		*apiBasepath, *apiToken,
+		*consulHost, *consulPort,
+		*secureOnly, *antiReplayMaxSize, *antiReplayEvictionTime,
 		*adtag,
 	)
 	if err != nil {
@@ -171,14 +195,12 @@ func main() { // nolint: gocyclo
 		zap.S().Infow("Use direct connection to Telegram")
 	}
 
+	users.StartAPI(conf)
+
 	server, err := proxy.NewProxy(conf)
 	if err != nil {
 		panic(err)
 	}
-
-	api := InitGin()
-	apiListenAddr := bindIP.String() + ":" + strconv.Itoa(int(*bindAPIPort))
-	go api.Run(apiListenAddr)
 
 	if err := server.Serve(); err != nil {
 		zap.S().Fatalw("Server stopped", "error", err)

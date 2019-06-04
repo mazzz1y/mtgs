@@ -3,54 +3,60 @@ package users
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"mtg/config"
+	"strconv"
 
 	consul "github.com/hashicorp/consul/api"
 )
 
+// User defines struct for KV
 type User struct {
 	Name   string `json:"name"`
 	Secret []byte `json:"secret"`
 }
 
-var KV = initKV()
+var kv *consul.KV
 
-func initKV() *consul.KV {
-	conf := consul.Config{
-		Address: "127.0.0.1:8500",
+// InitKV initialize consul client
+func InitKV(conf *config.Config) {
+	client, err := consul.NewClient(&consul.Config{
+		Address: conf.ConsulHost + ":" + strconv.Itoa(int(conf.ConsulPort)),
 		Scheme:  "http",
-	}
-	client, err := consul.NewClient(&conf)
+	})
 	if err != nil {
 		panic(err)
 	}
-	kv := client.KV()
-	return kv
+	kv = client.KV()
 }
 
+// Create method generate token and put user it into KV storage
 func (u User) Create() (User, error) {
 	u.Secret = generateSecret()
 	p := &consul.KVPair{Key: u.Name, Value: u.Secret}
-	_, err := KV.Put(p, nil)
+	_, err := kv.Put(p, nil)
 	return u, err
 }
 
+// Exist method check if user exist in KV storage
 func (u User) Exist() bool {
-	res, _, _ := KV.Get(u.Name, nil)
+	res, _, _ := kv.Get(u.Name, nil)
 	if res != nil {
 		return true
 	}
 	return false
 }
 
+// Delete method remove user from KV storage
 func (u User) Delete() error {
-	_, err := KV.Delete(u.Name, nil)
+	_, err := kv.Delete(u.Name, nil)
 	return err
 }
 
+// GetAll method return list of users from KV storage
 func (u User) GetAll() ([]User, error) {
 	var users []User
 
-	list, _, err := KV.List("", nil)
+	list, _, err := kv.List("", nil)
 
 	if err != nil {
 		return users, err
@@ -62,18 +68,6 @@ func (u User) GetAll() ([]User, error) {
 
 	return users, err
 
-}
-
-func InitSecrets() ([][]byte, error) {
-	var secrets [][]byte
-	users, err := User{}.GetAll()
-	if err != nil {
-		return secrets, err
-	}
-	for _, u := range users {
-		secrets = append(secrets, u.Secret)
-	}
-	return secrets, err
 }
 
 func generateSecret() []byte {

@@ -178,6 +178,18 @@ func NewProxy(conf *config.Config) (*Proxy, error) {
 		conf:            conf,
 		clientInit:      clientInit,
 		tg:              tg,
-		secrets:         users.InitSecrets,
+		secrets:         initSecrets,
 	}, nil
+}
+
+func initSecrets() ([][]byte, error) {
+	var secrets [][]byte
+	users, err := users.User{}.GetAll()
+	if err != nil {
+		return secrets, err
+	}
+	for _, u := range users {
+		secrets = append(secrets, u.Secret)
+	}
+	return secrets, err
 }

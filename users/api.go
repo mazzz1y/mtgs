@@ -1,28 +1,36 @@
-package main
+package users
 
 import (
 	"encoding/hex"
+	"strconv"
 	"time"
-
-	"mtg/users"
 
 	"github.com/gin-gonic/gin"
 	cors "github.com/itsjamie/gin-cors"
+
+	"mtg/config"
+
+	"go.uber.org/zap"
 )
 
-type router struct{}
+// Creates type for API methods
+type apiMethods struct{}
 
-var Router router
+var (
+	api    apiMethods
+	log, _ = zap.NewProduction()
+)
 
-const path = "/mtg"
-
+// UserForm defines JSON form for API
 type UserForm struct {
 	Name   string `form:"name" json:"name"`
 	Secret string `form:"secret" json:"secret"`
 }
 
-func InitGin() *gin.Engine {
+// StartAPI creates a new Gin instance and start it in a goroutine
+func StartAPI(conf *config.Config) {
 	r := gin.New()
+
 	r.Use(cors.Middleware(cors.Config{
 		Origins:         "*",
 		Methods:         "GET, PUT, POST, DELETE",
@@ -33,17 +41,23 @@ func InitGin() *gin.Engine {
 		ValidateHeaders: false,
 	}))
 
-	users := r.Group(path)
-	{
-		users.GET("", Router.GetAll)
-		users.POST("", Router.Create)
-		users.DELETE(":name", Router.Delete)
-
+	if conf.APIToken != "" {
+		r.Use(authMiddleware(conf.APIToken))
 	}
-	return r
+
+	users := r.Group(conf.APIBasepath)
+	{
+		users.GET("", api.getAll)
+		users.POST("", api.create)
+		users.DELETE(":name", api.delete)
+	}
+
+	apiListenAddr := conf.BindIP.String() + ":" + strconv.Itoa(int(conf.BindAPIPort))
+	InitKV(conf)
+	go r.Run(apiListenAddr)
 }
 
-func (*router) Create(c *gin.Context) {
+func (*apiMethods) create(c *gin.Context) {
 	var form UserForm
 
 	if err := c.BindJSON(&form); err != nil {
@@ -53,7 +67,7 @@ func (*router) Create(c *gin.Context) {
 		return
 	}
 
-	u, err := users.User{
+	u, err := User{
 		Name: form.Name,
 	}.Create()
 
@@ -61,14 +75,15 @@ func (*router) Create(c *gin.Context) {
 		c.JSON(500, gin.H{
 			"error": "server error",
 		})
+		zap.S().Errorw("Failed to create user", "error", err)
 		return
 	}
 	secret := "dd" + hex.EncodeToString(u.Secret)
 	c.JSON(200, UserForm{Name: u.Name, Secret: secret})
 }
 
-func (*router) GetAll(c *gin.Context) {
-	users, err := users.User{}.GetAll()
+func (*apiMethods) getAll(c *gin.Context) {
+	users, err := User{}.GetAll()
 	var forms []UserForm
 
 	if users == nil {
@@ -82,6 +97,7 @@ func (*router) GetAll(c *gin.Context) {
 		c.JSON(404, gin.H{
 			"error": "server error",
 		})
+		zap.S().Errorw("Failed to get users", "error", err)
 		return
 	}
 
@@ -92,10 +108,10 @@ func (*router) GetAll(c *gin.Context) {
 	c.JSON(200, forms)
 }
 
-func (*router) Delete(c *gin.Context) {
+func (*apiMethods) delete(c *gin.Context) {
 	name := c.Param("name")
 
-	u := users.User{
+	u := User{
 		Name: name,
 	}
 
@@ -112,10 +128,22 @@ func (*router) Delete(c *gin.Context) {
 		c.JSON(500, gin.H{
 			"error": "server error",
 		})
+		zap.S().Errorw("Failed to delete users", "error", err)
 		return
 	}
 
 	c.JSON(200, gin.H{
 		"status": "ok",
 	})
+}
+
+func authMiddleware(token string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if c.GetHeader("Authorization") != token {
+			c.AbortWithStatusJSON(401, gin.H{
+				"error": "unauthorized",
+			})
+			return
+		}
+	}
 }

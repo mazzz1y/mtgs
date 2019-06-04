@@ -43,12 +43,14 @@ func TestObfs2TelegramDecryptEncryptDecrypt(t *testing.T) {
 }
 
 func TestObfs2Full(t *testing.T) {
-	secret := []byte{1, 2, 3, 4, 5}
+	secrets := [][]byte{
+		[]byte{1, 2, 3, 4, 5},
+	}
 
 	clientFrame := generateFrame(mtproto.ConnectionTypeIntermediate)
 	clientHasher := sha256.New()
 	clientHasher.Write(clientFrame.Key()) // nolint: errcheck, gosec
-	clientHasher.Write(secret)            // nolint: errcheck, gosec
+	clientHasher.Write(secrets[0])        // nolint: errcheck, gosec
 	clientKey := clientHasher.Sum(nil)
 
 	encryptor := makeStreamCipher(clientKey, clientFrame.IV())
@@ -59,11 +61,11 @@ func TestObfs2Full(t *testing.T) {
 	invertedClientFrame := clientFrame.Invert()
 	clientHasher = sha256.New()
 	clientHasher.Write(invertedClientFrame.Key()) // nolint: errcheck, gosec
-	clientHasher.Write(secret)                    // nolint: errcheck, gosec
+	clientHasher.Write(secrets[0])                // nolint: errcheck, gosec
 	invertedClientKey := clientHasher.Sum(nil)
 	clientDecryptor := makeStreamCipher(invertedClientKey, invertedClientFrame.IV())
 
-	clientObfs, _, err := ParseObfuscated2ClientFrame(secret, encrypted)
+	clientObfs, _, err := ParseObfuscated2ClientFrame(secrets, encrypted)
 	assert.Nil(t, err)
 
 	connOpts := &mtproto.ConnectionOpts{

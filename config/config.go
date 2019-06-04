@@ -20,8 +20,15 @@ type Config struct {
 	WriteBufferSize int
 
 	BindPort       uint16
+	BindAPIPort    uint16
 	PublicIPv4Port uint16
 	PublicIPv6Port uint16
+
+	APIBasepath string
+	APIToken    string
+
+	ConsulHost string
+	ConsulPort uint16
 
 	BindIP     net.IP
 	PublicIPv4 net.IP
@@ -69,7 +76,8 @@ func getAddr(host fmt.Stringer, port uint16) string {
 func NewConfig(debug, verbose bool, // nolint: gocyclo
 	writeBufferSize, readBufferSize uint32,
 	bindIP, publicIPv4, publicIPv6 net.IP,
-	bindPort, publicIPv4Port, publicIPv6Port uint16,
+	bindPort, bindAPIPort, publicIPv4Port, publicIPv6Port uint16,
+	apiBasepath, apiToken, consulHost string, consulPort uint16,
 	secureOnly bool,
 	antiReplayMaxSize int, antiReplayEvictionTime time.Duration,
 	adtag []byte) (*Config, error) {
@@ -110,6 +118,11 @@ func NewConfig(debug, verbose bool, // nolint: gocyclo
 		PublicIPv4Port:         publicIPv4Port,
 		PublicIPv6:             publicIPv6,
 		PublicIPv6Port:         publicIPv6Port,
+		BindAPIPort:            bindAPIPort,
+		APIBasepath:            apiBasepath,
+		APIToken:               apiToken,
+		ConsulHost:             consulHost,
+		ConsulPort:             consulPort,
 		AdTag:                  adtag,
 		SecureMode:             secureMode,
 		ReadBufferSize:         int(readBufferSize),
