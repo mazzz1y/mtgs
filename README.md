@@ -1,6 +1,7 @@
 # mtgs
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/dmirubtsov/mtgs)](https://goreportcard.com/report/github.com/dmirubtsov/mtgs)
+[![Docker Build Status](https://img.shields.io/docker/cloud/build/mazy/mtgs.svg)](https://cloud.docker.com/repository/docker/mazy/mtgs)
 
 Bullshit MTPROTO proxy for Telegram with per-user tokens and RestAPI for that. Using [Consul](https://consul.io) as KV storage
 
