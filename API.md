@@ -2,7 +2,7 @@
 
 ## Authorization
 
-Your API token should be provided in `Authorization` header. Please see environment variables in [README.md](../README.md)
+Your API token should be provided in `Authorization` header. Please see environment variables in [README.md](./README.md)
 
 ## Create a user(or get a new token)
 
