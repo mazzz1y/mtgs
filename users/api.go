@@ -41,11 +41,14 @@ func StartAPI(conf *config.Config) {
 		ValidateHeaders: false,
 	}))
 
-	if conf.APIToken != "" {
-		r.Use(authMiddleware(conf.APIToken))
-	}
+	r.GET(conf.APIBasepath+"/healthz", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"status": "ok",
+		})
+	})
 
 	users := r.Group(conf.APIBasepath)
+	users.Use(authMiddleware(conf.APIToken))
 	{
 		users.GET("", api.getAll)
 		users.POST("", api.create)
