@@ -1,0 +1,15 @@
+Thank you for installing {{ .Chart.Name }}.
+
+Your release is named {{ .Release.Name }}.
+
+To learn more about the release, try:
+
+  $ helm status {{ .Release.Name }}
+  $ helm get {{ .Release.Name }}
+
+API available on {{ index .Values.ingress.hosts 0 }}.
+
+Get the MTPROTO IP by running this command:
+'kubectl get svc -w {{ include "mtgs.fullname" . }}-mtproto'
+
+NOTE: It may take a few minutes for the LoadBalancer IP to be available.

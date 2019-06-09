@@ -5,11 +5,13 @@
 
 Bullshit MTPROTO proxy for Telegram with per-user tokens and RestAPI for that. Using [Consul](https://consul.io) as KV storage
 
-## TODO
-
-* Add Helm chart for k8s
-
 ## Deployment
+
+### Kubernetes
+
+Project can be deployed into K8s cluster by Helm chart.
+
+Chart and documentation available [here](./k8s)
 
 ### docker-compose
 
@@ -23,7 +25,6 @@ networks:
     external: true
 
 services:
-
   mtgs:
       image: mazy/mtgs:latest
       ports:
@@ -37,7 +38,6 @@ services:
         - "traefik.frontend.rule=Host:example.com;PathPrefix:/mtgs"
         - "traefik.port=8080"
         - "traefik.docker.network=proxy"
-
   consul:
     image: bitnami/consul:latest
     volumes:

@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "mtgs.fullname" . }}-mtproto
+  labels:
+{{ include "mtgs.labels" . | indent 4 }}
+spec:
+  type: LoadBalancer
+  ports:
+  {{- range $p := .Values.service.ports }}
+    - port: {{ $p }}
+      targetPort: mtproto
+      name: {{ $p | quote }}
+  {{- end }}
+  selector:
+    app.kubernetes.io/name: {{ include "mtgs.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}

@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "mtgs.fullname" . }}
+  labels:
+{{ include "mtgs.labels" . | indent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "mtgs.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "mtgs.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: api
+              containerPort: 8080
+              protocol: TCP
+            - name: mtproto
+              containerPort: 3128
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.ingress.path }}/healthz
+              port: api
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.ingress.path }}/healthz
+              port: api
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          env:
+            - name: MTGS_CONSUL_HOST
+              value: {{ template "consul.fullname" . }}-ui
+            - name: MTGS_API_PATH
+              value: {{ .Values.ingress.path }}
+            - name: MTGS_API_PORT
+              value: "8080"
+            - name: MTGS_API_TOKEN
+              value: {{ .Values.ingress.apiToken | quote }}
+            - name: MTGS_ADTAG
+              value: {{ .Values.adtag | quote }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
